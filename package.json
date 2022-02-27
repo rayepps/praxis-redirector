@@ -1,0 +1,39 @@
+{
+  "name": "praxis-redirector",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "source ./env.sh && PORT=7710 ts-node --transpile-only ./src/dev.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@exobase/auth": "^0.0.14",
+    "@exobase/core": "^0.0.6",
+    "@exobase/hooks": "^0.0.10",
+    "@exobase/lambda": "^0.0.10",
+    "analytics-node": "^5.1.0",
+    "coralogix-logger": "^1.1.28",
+    "date-fns": "^2.24.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.4.0",
+    "nanoid": "^3.3.1",
+    "radash": "^1.7.0",
+    "urijs": "^1.19.8"
+  },
+  "devDependencies": {
+    "@exobase/local": "^0.0.18",
+    "@types/analytics-node": "^3.1.6",
+    "@types/chai": "^4.2.21",
+    "@types/fs-extra": "^9.0.11",
+    "@types/minimist": "^1.2.2",
+    "@types/node": "^15.0.1",
+    "@types/urijs": "^1.19.19",
+    "@types/uuid": "^8.3.0",
+    "chai": "^4.3.4",
+    "fs-extra": "^10.0.0",
+    "minimist": "^1.2.5",
+    "nodemon": "^2.0.7",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  }
+}
