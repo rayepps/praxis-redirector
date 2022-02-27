@@ -49,12 +49,12 @@ const argsToText = (args: any[]): any => {
 const getLogger = () => {
   if (!global._coralogixLogger) {
     const lc = new LoggerConfig({
-      applicationName: 'Praxis',
       privateKey: config.coralogixKey,
-      subsystemName: 'API'
+      applicationName: config.coralogixApplicationName,
+      subsystemName: config.coralogixSubsystemName
     })
     CoralogixLogger.configure(lc)
-    global._coralogixLogger = new CoralogixLogger('praxis.api')
+    global._coralogixLogger = new CoralogixLogger(config.coralogixLoggerName)
   }
   return global._coralogixLogger
 }
