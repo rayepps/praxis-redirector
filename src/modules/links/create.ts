@@ -13,6 +13,8 @@ import * as t from '../../core/types'
 interface Args {
   url: string
   title: string
+  class: string
+  metadata?: any
 }
 
 interface Services {
@@ -28,7 +30,7 @@ const nanoid = customAlphabet(alphabet, 10)
 
 async function createLink({ args, services }: Props<Args, Services>): Promise<Response> {
   const { mongo } = services
-  const { url, title } = args
+  const { url, title, metadata, class: cls } = args
 
   const [uerr, existingLink] = await mongo.findLinkByUrl({ url })
   if (uerr) {
@@ -48,7 +50,9 @@ async function createLink({ args, services }: Props<Args, Services>): Promise<Re
     url,
     code,
     link: `${config.host}/go/to?c=${code}`,
-    title
+    title,
+    metadata: metadata ?? {},
+    class: cls
   }
 
   const [err] = await mongo.addLink(link)
@@ -67,7 +71,9 @@ export default _.compose(
   useApiKeyAuthentication(config.apiKey),
   useJsonArgs<Args>(yup => ({
     url: yup.string().required(),
-    title: yup.string().required()
+    title: yup.string().required(),
+    class: yup.string().required(),
+    metadata: yup.mixed()
   })),
   useService<Services>({
     mongo: makeMongo()
