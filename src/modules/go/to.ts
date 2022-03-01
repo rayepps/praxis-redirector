@@ -25,6 +25,12 @@ async function redirectToLink({ args, services, response }: Props<Args, Services
     // TODO: Not sure how to handle this because this endpoint will
     // be called by browser and will expect a document in return
     // not json
+    console.error('Failed to lookup link by code', { err })
+    return
+  }
+
+  if (!link) {
+    console.warn('No link found for redirection', { code })
     return
   }
 
