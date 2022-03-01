@@ -34,18 +34,23 @@ async function redirectToLink({ args, services, response }: Props<Args, Services
     return
   }
 
-  analytics.track({
-    event: 'link.follow',
-    anonymousId: uuid.v4(),
-    properties: {
-      domain: link.domain,
-      url: link.url,
-      code: link.code,
-      link: link.link,
-      title: link.title,
-      metadata: link.metadata,
-      class: link.class
-    }
+  await new Promise((res, rej) => {
+    analytics.track({
+      event: 'link.follow',
+      anonymousId: uuid.v4(),
+      properties: {
+        domain: link.domain,
+        url: link.url,
+        code: link.code,
+        link: link.link,
+        title: link.title,
+        metadata: link.metadata,
+        class: link.class
+      }
+    }, (err) => {
+      if (err) rej(err)
+      res(null)
+    })
   })
 
   return {
