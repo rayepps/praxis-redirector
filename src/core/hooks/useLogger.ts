@@ -48,12 +48,14 @@ const argsToText = (args: any[]): any => {
 
 const getLogger = () => {
   if (!global._coralogixLogger) {
-    const lc = new LoggerConfig({
-      privateKey: config.coralogixKey,
-      applicationName: config.coralogixApplicationName,
-      subsystemName: config.coralogixSubsystemName
-    })
-    CoralogixLogger.configure(lc)
+    CoralogixLogger.configure(
+      new LoggerConfig({
+        privateKey: config.coralogixKey,
+        applicationName: config.coralogixApplicationName,
+        subsystemName: config.coralogixSubsystemName,
+        debug: true
+      })
+    )
     global._coralogixLogger = new CoralogixLogger(config.coralogixLoggerName)
   }
   return global._coralogixLogger
@@ -61,22 +63,13 @@ const getLogger = () => {
 
 export const initLogger = () => {
   const logger = getLogger()
-  const sendLog = (severity: Severity, args: any[]) => {
-    logger.addLog(
-      new Log({
-        severity,
-        text: argsToText(args)
-      })
-    )
-  }
-
-  logger.waitForFlush().then(() => {})
 
   const intercept = (severity: Severity, original: AnyFunc): AnyFunc => {
-    if ((original as any).__hook === 'log.override') return original
+    if ((original as any).__hook === 'log.override') {
+      return original
+    }
     function logOverride(...args: any[]) {
-      if (!args || args.length === 0) return
-      sendLog(severity, args)
+      logger.addLog(new Log({ severity, text: argsToText(args) }))
       original.apply(console, args)
     }
     logOverride.__hook = 'log.override'
@@ -87,6 +80,8 @@ export const initLogger = () => {
   console.error = intercept(Severity.error, console.error)
   console.warn = intercept(Severity.warning, console.warn)
   console.debug = intercept(Severity.debug, console.debug)
+
+  return logger
 }
 
 /**
@@ -96,8 +91,13 @@ export const initLogger = () => {
  * next function which is the real root hook.
  */
 export const useLogger = () => (func: AnyFunc) => {
-  if (config.env !== 'local') {
-    initLogger()
+  const logger = config.env !== 'local' ? initLogger() : null
+  return async (...args: any[]) => {
+    const [err, result] = await _.try(func)(...args)
+    if (logger) {
+      await logger.waitForFlush()
+    }
+    if (err) throw err
+    return result
   }
-  return func
 }
