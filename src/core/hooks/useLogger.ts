@@ -52,8 +52,7 @@ const getLogger = () => {
       new LoggerConfig({
         privateKey: config.coralogixKey,
         applicationName: config.coralogixApplicationName,
-        subsystemName: config.coralogixSubsystemName,
-        debug: true
+        subsystemName: config.coralogixSubsystemName
       })
     )
     global._coralogixLogger = new CoralogixLogger(config.coralogixLoggerName)
