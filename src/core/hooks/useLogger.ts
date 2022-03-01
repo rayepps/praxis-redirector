@@ -43,8 +43,8 @@ export const initLogger = () => {
  * next function which is the real root hook.
  */
 export const useLogger = () => (func: AnyFunc) => {
-  // if (config.env !== 'local') {
-  initLogger()
-  // }
+  if (config.env !== 'local') {
+    initLogger()
+  }
   return func
 }
