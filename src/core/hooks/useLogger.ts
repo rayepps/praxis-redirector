@@ -1,4 +1,5 @@
 import _ from 'radash'
+import { v4 as uuid } from 'uuid'
 import { Logtail } from '@logtail/node'
 import config from '../config'
 
@@ -17,13 +18,15 @@ const getLogger = () => {
 
 export const initLogger = () => {
   const logger = getLogger()
+  const queue: Record<string, Promise<any>> = {}
 
   const intercept = (consoleFunc: AnyFunc, logtailFunc: AnyFunc): AnyFunc => {
     if ((consoleFunc as any).__hook === 'log.override') {
       return consoleFunc
     }
     function logOverride(...args: any[]) {
-      logtailFunc.apply(logger, args)
+      const id = uuid()
+      queue[id] = logtailFunc.apply(logger, args).then(() => delete queue[id])
       consoleFunc.apply(console, args)
     }
     logOverride.__hook = 'log.override'
@@ -34,6 +37,10 @@ export const initLogger = () => {
   console.error = intercept(console.error, logger.error)
   console.warn = intercept(console.warn, logger.warn)
   console.debug = intercept(console.debug, logger.debug)
+
+  return {
+    pending: () => Object.values(queue)
+  }
 }
 
 /**
@@ -43,8 +50,13 @@ export const initLogger = () => {
  * next function which is the real root hook.
  */
 export const useLogger = () => (func: AnyFunc) => {
-  if (config.env !== 'local') {
-    initLogger()
+  const logger = config.env !== 'local' ? initLogger() : null
+  return async (...args: any[]) => {
+    const [err, result] = await _.try(func)(...args)
+    if (logger) {
+      await (Promise as any).allSettled(logger.pending())
+    }
+    if (err) throw err
+    return result
   }
-  return func
 }
