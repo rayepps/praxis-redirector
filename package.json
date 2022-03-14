@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "source ./env.sh && PORT=7710 ts-node --transpile-only ./src/dev.ts",
-    "build": "tsc"
+    "build": "ts-node build.ts"
   },
   "dependencies": {
     "@exobase/auth": "^0.0.14",
@@ -30,10 +30,14 @@
     "@types/urijs": "^1.19.19",
     "@types/uuid": "^8.3.0",
     "chai": "^4.3.4",
+    "cmdish": "^1.1.0",
     "fs-extra": "^10.0.0",
     "minimist": "^1.2.5",
     "nodemon": "^2.0.7",
+    "terser-webpack-plugin": "^5.3.1",
+    "ts-loader": "^9.2.8",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "webpack": "^5.70.0"
   }
 }
