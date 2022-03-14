@@ -10,7 +10,7 @@
     "@exobase/auth": "^0.0.14",
     "@exobase/core": "^0.0.6",
     "@exobase/hooks": "^0.0.10",
-    "@exobase/lambda": "^0.0.10",
+    "@exobase/lambda": "^0.0.11",
     "@logtail/node": "^0.1.10",
     "analytics-node": "^5.1.0",
     "date-fns": "^2.24.0",
