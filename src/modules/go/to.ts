@@ -55,7 +55,7 @@ async function redirectToLink({ args, services, response }: Props<Args, Services
 
   return {
     ...response,
-    status: 301, // Moved Permanently
+    status: 302, // Moved Temporarily
     headers: {
       Location: link.url
     }
