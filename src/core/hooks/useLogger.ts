@@ -2,6 +2,7 @@ import _ from 'radash'
 import { v4 as uuid } from 'uuid'
 import { Logtail } from '@logtail/node'
 import config from '../config'
+import type { ApiFunction, Props } from '@exobase/core'
 
 declare global {
   var _logtailLogger: Logtail
@@ -12,7 +13,7 @@ type AnyFunc = (...args: any[]) => any
 const getLogger = () => {
   if (!global._logtailLogger) {
     global._logtailLogger = new Logtail(config.logtailToken, {
-      batchSize: 2,
+      batchSize: 10,
       batchInterval: 15
     })
   }
@@ -51,16 +52,16 @@ export const initLogger = () => {
  * its not a root hook or standard hook. Its used as a
  * root hook but only inits the logger and passes on the
  * next function which is the real root hook.
+ * 
+ * Now calling this an init hook :)
  */
-export const useLogger = () => (func: AnyFunc) => {
+export const useLogger = () => (func: ApiFunction) => {
   const logger = config.env !== 'local' ? initLogger() : null
-  return async (...args: any[]) => {
-    const [err, result] = await _.try(func)(...args)
-    if (logger) {
-      const pending = logger.pending()
-      if (pending.length > 0) {
-        await (Promise as any).allSettled(pending)
-      }
+  return async (props: Props) => {
+    const [err, result] = await _.try(func)(props)
+    const pending = logger?.pending() ?? []
+    if (pending.length > 0) {
+      await (Promise as any).allSettled(pending)
     }
     if (err) throw err
     return result

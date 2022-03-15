@@ -32,7 +32,8 @@ async function createLink({ args, services }: Props<Args, Services>): Promise<Re
   const { mongo } = services
   const { url, title, metadata, class: cls } = args
 
-  const [uerr, existingLink] = await mongo.findLinkByUrl({ url })
+  const m = await mongo()
+  const [uerr, existingLink] = await m.findLinkByUrl({ url })
   if (uerr) {
     throw uerr
   }
@@ -55,7 +56,7 @@ async function createLink({ args, services }: Props<Args, Services>): Promise<Re
     class: cls
   }
 
-  const [err] = await mongo.addLink(link)
+  const [err] = await m.addLink(link)
   if (err) {
     throw err
   }

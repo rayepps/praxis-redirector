@@ -20,7 +20,19 @@ async function redirectToLink({ args, services, response }: Props<Args, Services
   const { mongo, analytics } = services
   const { c: code } = args
 
-  const [err, link] = await mongo.findLinkByCode({ code })
+  if (!code) {
+    console.warn('Tried redirect without c= query string')
+    return {
+      ...response,
+      status: 302, // Moved Temporarily
+      headers: {
+        Location: 'https://praxisco.us/err/lost?err=missing-redirect-code'
+      }
+    }
+  }
+
+  const m = await mongo()
+  const [err, link] = await m.findLinkByCode({ code })
   if (err) {
     // TODO: Not sure how to handle this because this endpoint will
     // be called by browser and will expect a document in return
@@ -78,7 +90,7 @@ export default _.compose(
   useLogger(),
   useLambda(),
   useQueryArgs<Args>(yup => ({
-    c: yup.string().required()
+    c: yup.string()
   })),
   useService<Services>({
     mongo: makeMongo(),
