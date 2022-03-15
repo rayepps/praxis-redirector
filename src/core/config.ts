@@ -9,11 +9,9 @@ const config = {
   apiKey: get('API_KEY'),
   host: get('PRAXIS_REDIRECTOR_HOST'),
   segmentKey: get('SEGMENT_KEY'),
-  mongoUsername: get('MONGO_USER_NAME'),
-  mongoPassword: get('MONGO_PASSWORD'),
-  mongoInstanceName: get('MONGO_INSTANCE_NAME'),
-  mongoSubdomain: get('MONGO_SUBDOMAIN'),
-  logtailToken: get('LOGTAIL_TOKEN')
+  logtailToken: get('LOGTAIL_TOKEN'),
+  dynamoAccessKeyId: get('DYNAMO_ACCESS_KEY_ID'),
+  dynamoSecretAccessKey: get('DYNAMO_SECRET_ACCESS_KEY')
 }
 
 export type Config = typeof config

@@ -4,20 +4,20 @@ import type { Props, Response } from '@exobase/core'
 import { useLogger } from '../../core/hooks/useLogger'
 import { useQueryArgs, useService } from '@exobase/hooks'
 import { useLambda } from '@exobase/lambda'
-import makeMongo, { MongoClient } from '../../core/mongo'
 import makeAnalytics, { Analytics } from '../../core/analytics'
+import makeDatabase, { Database } from '../../core/db'
 
 interface Args {
   c: string
 }
 
 interface Services {
-  mongo: MongoClient
+  db: Database
   analytics: Analytics
 }
 
 async function redirectToLink({ args, services, response }: Props<Args, Services>): Promise<Response> {
-  const { mongo, analytics } = services
+  const { db, analytics } = services
   const { c: code } = args
 
   if (!code) {
@@ -31,24 +31,10 @@ async function redirectToLink({ args, services, response }: Props<Args, Services
     }
   }
 
-  const m = await mongo()
-  const [err, link] = await m.findLinkByCode({ code })
-  if (err) {
-    // TODO: Not sure how to handle this because this endpoint will
-    // be called by browser and will expect a document in return
-    // not json
-    console.error('Failed to lookup link by code', { err })
-    return {
-      ...response,
-      status: 302, // Moved Temporarily
-      headers: {
-        Location: 'https://praxisco.us/err/lost?err=server-error'
-      }
-    }
-  }
+  const link = await db.findLinkByCode(code)
 
   if (!link) {
-    console.warn('No link found for redirection', { code })
+    console.warn(`Could not find link for given code(${code})`)
     return {
       ...response,
       status: 302, // Moved Temporarily
@@ -62,15 +48,7 @@ async function redirectToLink({ args, services, response }: Props<Args, Services
     analytics.track({
       event: 'link.follow',
       anonymousId: uuid.v4(),
-      properties: {
-        domain: link.domain,
-        url: link.url,
-        code: link.code,
-        link: link.link,
-        title: link.title,
-        metadata: link.metadata,
-        class: link.class
-      }
+      properties: link
     }, (err) => {
       if (err) console.error(err)
       res(null)
@@ -93,7 +71,7 @@ export default _.compose(
     c: yup.string()
   })),
   useService<Services>({
-    mongo: makeMongo(),
+    db: makeDatabase(),
     analytics: makeAnalytics()
   }),
   redirectToLink

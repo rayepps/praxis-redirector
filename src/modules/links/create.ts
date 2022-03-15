@@ -1,14 +1,14 @@
 import _ from 'radash'
 import URI from 'urijs'
-import { customAlphabet } from 'nanoid'
 import type { Props } from '@exobase/core'
 import { useLogger } from '../../core/hooks/useLogger'
 import { useJsonArgs, useService } from '@exobase/hooks'
 import { useApiKeyAuthentication } from '@exobase/auth'
 import { useLambda } from '@exobase/lambda'
-import makeMongo, { MongoClient } from '../../core/mongo'
+import makeDatabase, { Database } from '../../core/db'
 import config from '../../core/config'
 import * as t from '../../core/types'
+import { createLinkCode } from '../../core/model'
 
 interface Args {
   url: string
@@ -18,33 +18,28 @@ interface Args {
 }
 
 interface Services {
-  mongo: MongoClient
+  db: Database
 }
 
 interface Response {
   link: t.LinkRef
 }
 
-const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-const nanoid = customAlphabet(alphabet, 10)
-
 async function createLink({ args, services }: Props<Args, Services>): Promise<Response> {
-  const { mongo } = services
-  const { url, title, metadata, class: cls } = args
+  const { db } = services
+  const { url: providedUrl, title, metadata, class: cls } = args
 
-  const m = await mongo()
-  const [uerr, existingLink] = await m.findLinkByUrl({ url })
-  if (uerr) {
-    throw uerr
-  }
+  const url = providedUrl.startsWith('https://') ? providedUrl : `https://${providedUrl}`
 
+  const code = createLinkCode(url)
+
+  const existingLink = await db.findLinkByCode(code)
   if (existingLink) {
+    console.log('Using existing link instead of creating new')
     return {
       link: existingLink
     }
   }
-
-  const code = nanoid()
 
   const link: t.LinkRef = {
     domain: new URI(url).domain(),
@@ -56,10 +51,7 @@ async function createLink({ args, services }: Props<Args, Services>): Promise<Re
     class: cls
   }
 
-  const [err] = await m.addLink(link)
-  if (err) {
-    throw err
-  }
+  await db.addLink(link)
 
   return {
     link
@@ -77,7 +69,7 @@ export default _.compose(
     metadata: yup.mixed()
   })),
   useService<Services>({
-    mongo: makeMongo()
+    db: makeDatabase()
   }),
   createLink
 )

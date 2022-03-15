@@ -1,15 +1,9 @@
+import * as uuid from 'uuid'
 
-
-export const slugger = (...parts: string[]) => {
-  return parts
-    .filter(x => !!x)
-    .join('-')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')      // non alpha numeric with -
-    .replace(/\-\-+/g, '-')          // --- with -
+export const createLinkCode = (url: string) => {
+  return uuid.v5(`px.link.${url}`, uuid.v5.DNS)
 }
 
 export default {
-  slugger
+  createLinkCode
 }
